@@ -4,9 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Comic;
+use Exception;
 
 class ComicController extends Controller
 {
+    protected $validCode = [
+        'title' => 'required|max:80',
+        'type' => 'required|max:60',
+        'sale_date' => 'required',
+        'price' => 'required',
+        'description' => 'required',
+        'thumb' => 'nullable|url'
+    ];
     /**
      * Display a listing of the resource.
      *
@@ -36,6 +45,9 @@ class ComicController extends Controller
      */
     public function store(Request $request)
     {
+        //validazione
+        $request->validate($this->validCode);
+
         $data = $request->all();
 
         $newComic = Comic::create($data);
@@ -50,9 +62,9 @@ class ComicController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Comic $comic)
     {
-        $comic = Comic::find($id);
+        /* $comic = Comic::find($id); */
         return view('comics.show', compact('comic'));
     }
 
@@ -76,8 +88,17 @@ class ComicController extends Controller
      */
     public function update(Request $request, Comic $comic)
     {
+        //validazione
+        $request->validate($this->validCode);
+        
         $data = $request->all();
-        $comic->update($data);
+        
+        try {
+            $comic->update($data);
+        } catch(Exception $e) {
+            abort(500);
+        }
+        
         return redirect()->route('comics.show', $comic->id);
     }
 
